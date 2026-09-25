@@ -3,7 +3,11 @@
   const themePromise = new Promise((resolve) => {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.get({ theme: 'system' }, (result) => {
-        resolve(result.theme || 'system');
+        if (chrome.runtime.lastError) {
+          resolve('system');
+          return;
+        }
+        resolve((result && result.theme) || 'system');
       });
     } else {
       resolve('system');

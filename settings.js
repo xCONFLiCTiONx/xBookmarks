@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
   chrome.bookmarks.getTree(tree => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+      return;
+    }
     const select = document.getElementById('popupRootFolder');
-    populateFolderSelect(select, tree);
+    if (select && tree) {
+      populateFolderSelect(select, tree);
+    }
     loadSettings();
   });
 });
@@ -14,7 +20,7 @@ function applyThemeToSettingsPage(theme) {
 }
 
 function populateFolderSelect(select, nodes, depth = 0) {
-  const sortedNodes = [...nodes].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  const sortedNodes = [...(nodes || [])].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
 
   sortedNodes.forEach(node => {
     if (!node.url) {
@@ -37,28 +43,45 @@ function loadSettings() {
     theme: 'system',
     sortAlphabetically: false
   }, settings => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+    }
 
-    const savedRootFolderId = settings.popupRootFolderId || settings.popupRootFolder || '2';
-    document.getElementById('popupRootFolder').value = savedRootFolderId;
+    const savedRootFolderId = (settings && (settings.popupRootFolderId || settings.popupRootFolder)) || '2';
+    const folderSelect = document.getElementById('popupRootFolder');
+    if (folderSelect) {
+      folderSelect.value = savedRootFolderId;
+    }
 
-    document.getElementById('sortAlphabetically').checked = settings.sortAlphabetically;
+    const sortCheckbox = document.getElementById('sortAlphabetically');
+    if (sortCheckbox) {
+      sortCheckbox.checked = settings ? settings.sortAlphabetically : false;
+    }
 
-    applyThemeToSettingsPage(settings.theme);
+    applyThemeToSettingsPage(settings ? settings.theme : 'system');
     attachSaveHandlers();
     saveSettings();
   });
 }
 
 function attachSaveHandlers() {
-  document.getElementById('popupRootFolder').addEventListener('change', saveSettings);
-  document.getElementById('themeSelect').addEventListener('change', saveSettings);
-  document.getElementById('sortAlphabetically').addEventListener('change', saveSettings);
+  const folderSelect = document.getElementById('popupRootFolder');
+  const themeSelect = document.getElementById('themeSelect');
+  const sortCheckbox = document.getElementById('sortAlphabetically');
+
+  if (folderSelect) folderSelect.addEventListener('change', saveSettings);
+  if (themeSelect) themeSelect.addEventListener('change', saveSettings);
+  if (sortCheckbox) sortCheckbox.addEventListener('change', saveSettings);
 }
 
 function saveSettings() {
-  const popupRootFolderId = String(document.getElementById('popupRootFolder').value || '2');
-  const theme = document.getElementById('themeSelect').value;
-  const sortAlphabetically = document.getElementById('sortAlphabetically').checked;
+  const folderSelect = document.getElementById('popupRootFolder');
+  const themeSelect = document.getElementById('themeSelect');
+  const sortCheckbox = document.getElementById('sortAlphabetically');
+
+  const popupRootFolderId = String((folderSelect && folderSelect.value) || '2');
+  const theme = (themeSelect && themeSelect.value) || 'system';
+  const sortAlphabetically = sortCheckbox ? sortCheckbox.checked : false;
 
   chrome.storage.local.set({
     popupRootFolderId,

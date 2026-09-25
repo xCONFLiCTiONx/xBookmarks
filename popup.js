@@ -1,7 +1,70 @@
+async function updateThemeIcon() {
+    // Detect whether the browser/system is currently in dark mode
+    // (Using self.matchMedia which is supported in MV3 service workers)
+    const isDarkMode = self.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Set color based on active mode: White for dark mode, Black for light mode
+    const iconColor = isDarkMode ? '#FFFFFF' : '#000000';
+
+    const size = 48;
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = iconColor;
+
+    // Draw your exact vector path from icon.svg scaled to 48x48
+    ctx.save();
+    ctx.scale(2, 2); // Scale 24x24 viewBox to 48x48
+    const p = new Path2D("M6 2h12v20l-6-4-6 4V2z");
+    ctx.fill(p);
+    ctx.restore();
+
+    const imageData = ctx.getImageData(0, 0, size, size);
+    chrome.action.setIcon({ imageData: imageData });
+}
+
+// Listen for theme changes dynamically
+self.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeIcon);
+
+function updatePageFavicon() {
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const iconColor = isDarkMode ? '%23FFFFFF' : '%23000000'; // URL-encoded #FFFFFF or #000000
+
+    // Construct a dynamic SVG data URI using your exact path
+    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="${iconColor}" d="M6 2h12v20l-6-4-6 4V2z"/></svg>`;
+    const dataUri = `data:image/svg+xml;utf8,${svgString}`;
+
+    // Find existing dynamic favicon or create one
+    let link = document.querySelector("link[rel*='icon']");
+    if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+    }
+    link.href = dataUri;
+}
+
+// Run on page load
+updatePageFavicon();
+
+// Listen for dynamic theme shifts (e.g., toggling Windows/Chrome dark mode)
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePageFavicon);
+
+// Run on extension installation, startup, and service worker load
+chrome.runtime.onInstalled.addListener(updateThemeIcon);
+chrome.runtime.onStartup.addListener(updateThemeIcon);
+
+updateThemeIcon();
+
 // Start fetching storage immediately to minimize wait time
 const preferredFolderPromise = new Promise((resolve) => {
     chrome.storage.local.get({ popupRootFolderId: '2', popupRootFolder: '2' }, (result) => {
-        resolve(result.popupRootFolderId || result.popupRootFolder || '2');
+        if (chrome.runtime.lastError) {
+            resolve('2');
+            return;
+        }
+        resolve((result && (result.popupRootFolderId || result.popupRootFolder)) || '2');
     });
 });
 
@@ -12,7 +75,15 @@ async function getPath(id) {
     for (let i = 0; i < 20; i++) {
         if (!currentId || currentId === "0") break;
         try {
-            const nodes = await new Promise(resolve => chrome.bookmarks.get(currentId, resolve));
+            const nodes = await new Promise(resolve => {
+                chrome.bookmarks.get(currentId, (results) => {
+                    if (chrome.runtime.lastError) {
+                        resolve(null);
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
             if (!nodes || nodes.length === 0) break;
             const node = nodes[0];
             path.unshift(node);
@@ -27,7 +98,15 @@ async function render(folderId) {
         // Fetch path and children in parallel
         const [path, children] = await Promise.all([
             getPath(folderId),
-            new Promise((resolve) => chrome.bookmarks.getChildren(folderId, resolve))
+            new Promise((resolve) => {
+                chrome.bookmarks.getChildren(folderId, (results) => {
+                    if (chrome.runtime.lastError) {
+                        resolve([]);
+                    } else {
+                        resolve(results);
+                    }
+                });
+            })
         ]);
 
         const container = document.createElement('ul');
@@ -122,13 +201,15 @@ async function initializePopup() {
 
     // Check if the preferred folder is valid
     chrome.bookmarks.get(preferredId, (results) => {
-        if (results && results[0] && !results[0].url) {
+        const lastError = chrome.runtime.lastError;
+        if (!lastError && results && results[0] && !results[0].url) {
             render(preferredId);
         } else {
             // Fallback to "Other Bookmarks" (usually '2')
             chrome.bookmarks.getChildren('0', (rootChildren) => {
-                const other = rootChildren.find(c => c.id === '2' || c.title.toLowerCase().includes('other'));
-                render(other ? other.id : (rootChildren[0]?.id || '1'));
+                const rootError = chrome.runtime.lastError;
+                const other = !rootError && rootChildren ? rootChildren.find(c => c.id === '2' || (c.title && c.title.toLowerCase().includes('other'))) : null;
+                render(other ? other.id : (rootChildren && rootChildren[0]?.id || '1'));
             });
         }
     });

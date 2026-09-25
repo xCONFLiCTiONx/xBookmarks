@@ -81,7 +81,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function getPreferredRootFolderId() {
     return new Promise((resolve) => {
         chrome.storage.local.get({ popupRootFolderId: '2', popupRootFolder: '2' }, (result) => {
-            resolve(result.popupRootFolderId || result.popupRootFolder || '2');
+            if (chrome.runtime.lastError) {
+                resolve('2');
+                return;
+            }
+            resolve((result && (result.popupRootFolderId || result.popupRootFolder)) || '2');
         });
     });
 }
@@ -145,7 +149,11 @@ async function initializeBookmarkPage() {
 async function sortAllBookmarksAlphabetically() {
     return new Promise((resolve) => {
         chrome.storage.local.get({ sortAlphabetically: false }, async (result) => {
-            if (result.sortAlphabetically) {
+            if (chrome.runtime.lastError) {
+                resolve();
+                return;
+            }
+            if (result && result.sortAlphabetically) {
                 try {
                     const tree = await chrome.bookmarks.getTree();
                     if (tree && tree[0]) {
@@ -184,7 +192,12 @@ async function sortNodeRecursive(node) {
                 // Move each child to its correct position if it's not already there
                 // This is safer than moving everything blindly
                 await new Promise((resolveMove) => {
-                    chrome.bookmarks.move(sortedChildren[i].id, { index: i }, () => resolveMove());
+                    chrome.bookmarks.move(sortedChildren[i].id, { index: i }, () => {
+                        if (chrome.runtime.lastError) {
+                            // ignore error if node was deleted concurrently
+                        }
+                        resolveMove();
+                    });
                 });
             }
         }
@@ -201,7 +214,11 @@ async function sortNodeRecursive(node) {
 async function getPinnedUrls() {
     return new Promise((resolve) => {
         chrome.storage.local.get(['pinnedBookmarks'], (result) => {
-            resolve(result.pinnedBookmarks || []);
+            if (chrome.runtime.lastError) {
+                resolve([]);
+                return;
+            }
+            resolve((result && result.pinnedBookmarks) || []);
         });
     });
 }
@@ -209,6 +226,9 @@ async function getPinnedUrls() {
 async function setPinnedUrls(pinned) {
     return new Promise((resolve) => {
         chrome.storage.local.set({ pinnedBookmarks: pinned }, () => {
+            if (chrome.runtime.lastError) {
+                // ignore
+            }
             resolve();
         });
     });
@@ -217,7 +237,11 @@ async function setPinnedUrls(pinned) {
 async function getCustomTitles() {
     return new Promise((resolve) => {
         chrome.storage.local.get(['pinnedCustomTitles'], (result) => {
-            resolve(result.pinnedCustomTitles || {});
+            if (chrome.runtime.lastError) {
+                resolve({});
+                return;
+            }
+            resolve((result && result.pinnedCustomTitles) || {});
         });
     });
 }
@@ -225,6 +249,9 @@ async function getCustomTitles() {
 async function setCustomTitles(titles) {
     return new Promise((resolve) => {
         chrome.storage.local.set({ pinnedCustomTitles: titles }, () => {
+            if (chrome.runtime.lastError) {
+                // ignore
+            }
             resolve();
         });
     });
@@ -415,7 +442,7 @@ async function renderRecentlyViewed() {
     recentGrid.innerHTML = '';
 
     chrome.history.search({ text: '', maxResults: 50, startTime: 0 }, async (historyItems) => {
-        if (!historyItems) return;
+        if (chrome.runtime.lastError || !historyItems) return;
 
         const uniqueItems = [];
         const seenUrls = new Set();
@@ -783,10 +810,11 @@ async function renderSessionHistory() {
     unifiedList.innerHTML = '';
 
     chrome.windows.getCurrent((currentWin) => {
+        if (chrome.runtime.lastError || !currentWin) return;
         const currentWindowId = currentWin.id;
 
         chrome.sessions.getRecentlyClosed({ maxResults: 25 }, (sessions) => {
-            if (!sessions) return;
+            if (chrome.runtime.lastError || !sessions) return;
 
             const currentWindowTabs = [];
             const otherClosedTabs = [];
@@ -850,7 +878,11 @@ async function renderSessionHistory() {
                     tabItem.appendChild(restoreBtn);
 
                     tabItem.addEventListener('click', () => {
-                        chrome.sessions.restore(tab.sessionId);
+                        chrome.sessions.restore(tab.sessionId, () => {
+                            if (chrome.runtime.lastError) {
+                                console.error("Error restoring session:", chrome.runtime.lastError);
+                            }
+                        });
                     });
 
                     tabsSubList.appendChild(tabItem);
@@ -899,7 +931,11 @@ async function renderSessionHistory() {
 
                         tabItem.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            chrome.sessions.restore(windowSession.sessionId);
+                            chrome.sessions.restore(windowSession.sessionId, () => {
+                                if (chrome.runtime.lastError) {
+                                    console.error("Error restoring session:", chrome.runtime.lastError);
+                                }
+                            });
                         });
 
                         tabsSubList.appendChild(tabItem);
