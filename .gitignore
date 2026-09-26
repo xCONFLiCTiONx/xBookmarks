@@ -433,3 +433,4 @@ whitelist.txt
 *.bat
 .idea/
 tests
+privacy.md
