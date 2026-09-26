@@ -1,12 +1,12 @@
 <img src="icons/icon128.png" width="64" align="left" style="margin-right: 20px; border-radius: 10px;">
 
-# Bookmarks
+# xBookmarks
 
 A clean, dark-themed bookmark navigation menu with alphabetical sort, which replaces your new tab and home page with a fast, keyboard-friendly bookmark dashboard.
 
 ## 🚀 Overview
 
-**Bookmarks** is a high-performance, dark-themed replacement for the default browser bookmark manager and New Tab page. It is designed for power users who want a fast, keyboard-centric interface to navigate their bookmarks efficiently.
+**xBookmarks** is a high-performance, dark-themed replacement for the default browser bookmark manager and New Tab page. It is designed for power users who want a fast, keyboard-centric interface to navigate their bookmarks efficiently.
 
 ## ✨ Key Features
 
