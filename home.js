@@ -53,7 +53,7 @@ function updatePageFavicon() {
 // Run on page load
 updatePageFavicon();
 
-// Listen for dynamic theme shifts (e.g., toggling Windows/Chrome dark mode)
+// Listen for dynamic theme shifts (e.g., toggling Windows/Browser dark mode)
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePageFavicon);
 
 // Run on extension installation, startup, and service worker load
@@ -269,7 +269,7 @@ function handleDragStart(e) {
     dragSource = this;
     e.dataTransfer.effectAllowed = 'move';
 
-    // Use a custom type to prevent Chrome from interpreting this as a URL drag
+    // Use a custom type to prevent the browser from interpreting this as a URL drag
     const dragData = {
         url: this.dataset.url,
         id: this.dataset.id,
@@ -449,7 +449,7 @@ async function renderRecentlyViewed() {
 
         for (const item of historyItems) {
             if (!item.url || !item.title) continue;
-            if (item.url.startsWith('chrome://') || item.url.startsWith('chrome-extension://') || item.url.includes('home.html')) continue;
+            if (item.url.startsWith('chrome://') || item.url.startsWith('edge://') || item.url.startsWith('chrome-extension://') || item.url.startsWith('edge-extension://') || item.url.includes('home.html')) continue;
 
             if (!seenUrls.has(item.url)) {
                 seenUrls.add(item.url);

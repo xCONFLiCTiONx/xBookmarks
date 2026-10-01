@@ -16,12 +16,12 @@ A clean, dark-themed bookmark navigation menu with alphabetical sort, which repl
 - **Modal Folders**: Explore folder contents in a clean modal view without losing your place.
 - **Usage Tracking**: Monitor your most frequently used bookmarks.
 - **Advanced Navigation**: Fast, keyboard-friendly dashboard for rapid browsing.
-- **Favicon Integration**: Leverages the internal Chrome Favicon API for high-quality, local icon rendering.
+- **Favicon Integration**: Leverages the internal browser Favicon API for high-quality, local icon rendering.
 
 ## 🛠️ Installation (Developer Mode)
 
 1. Download or clone this repository.
-2. Open Chrome and navigate to `chrome://extensions/`.
+2. Open your browser and navigate to your browser's extension management page (`extensions://` or `edge://extensions/` or `chrome://extensions/`).
 3. Enable **Developer mode** in the top-right corner.
 4. Click **Load unpacked** and select the extension folder.
 
@@ -36,7 +36,7 @@ A clean, dark-themed bookmark navigation menu with alphabetical sort, which repl
 
 - **Local Processing**: All bookmark data is read locally from your browser.
 - **No External Sync**: Your navigation habits and bookmark data are never sent to external servers.
-- **Favicon Security**: Uses Chrome's built-in favicon provider to ensure icons are retrieved safely.
+- **Favicon Security**: Uses the browser's built-in favicon provider to ensure icons are retrieved safely.
 
 ---
 *Part of the xCONFLiCTiONx suite of productivity tools.*

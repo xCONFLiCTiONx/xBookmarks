@@ -48,7 +48,7 @@ function updatePageFavicon() {
 // Run on page load
 updatePageFavicon();
 
-// Listen for dynamic theme shifts (e.g., toggling Windows/Chrome dark mode)
+// Listen for dynamic theme shifts (e.g., toggling Windows/Browser dark mode)
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePageFavicon);
 
 // Run on extension installation, startup, and service worker load

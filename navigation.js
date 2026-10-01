@@ -1,40 +1,66 @@
+function getInternalUrl(type) {
+    const ua = navigator.userAgent;
+    const isEdge = ua.includes('Edg');
+    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+
+    if (isEdge) {
+        switch (type) {
+            case 'bookmarks': return 'edge://bookmarks/';
+            case 'settings': return 'edge://settings/';
+            case 'passwords': return 'edge://wallet/passwords';
+            case 'contentAll': return 'edge://settings/privacy/cookies/AllCookies';
+            case 'extensions': return 'edge://extensions/';
+            case 'policy': return 'edge://policy';
+        }
+    } else if (isChrome || true) {
+        switch (type) {
+            case 'bookmarks': return 'chrome://bookmarks/';
+            case 'settings': return 'chrome://settings/';
+            case 'passwords': return 'chrome://password-manager/passwords';
+            case 'contentAll': return 'chrome://settings/content/all';
+            case 'extensions': return 'chrome://extensions/';
+            case 'policy': return 'chrome://policy';
+        }
+    }
+}
+
 function getNavigationItems() {
     return [
         {
             id: 'bookmarks',
             title: 'Bookmarks Manager',
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>',
-            onClick: () => chrome.tabs.create({ url: 'chrome://bookmarks/' })
+            onClick: () => chrome.tabs.create({ url: getInternalUrl('bookmarks') })
         },
         {
             id: 'settings',
-            title: 'Chrome Settings',
+            title: 'Browser Settings',
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 8h10"></path><path d="M9 14h6"></path><path d="M9 18h4"></path></svg>',
-            onClick: () => chrome.tabs.create({ url: 'chrome://settings/' })
+            onClick: () => chrome.tabs.create({ url: getInternalUrl('settings') })
         },
         {
             id: 'passwords',
             title: 'Password Manager',
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0,1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>',
-            onClick: () => chrome.tabs.create({ url: 'chrome://password-manager/passwords' })
+            onClick: () => chrome.tabs.create({ url: getInternalUrl('passwords') })
         },
         {
             id: 'contentAll',
             title: 'Cookies',
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5z"></path><line x1="8.5" y1="10.5" x2="8.51" y2="10.5"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="15.5" y1="10.5" x2="15.51" y2="10.5"></line></svg>',
-            onClick: () => chrome.tabs.create({ url: 'chrome://settings/content/all' })
+            onClick: () => chrome.tabs.create({ url: getInternalUrl('contentAll') })
         },
         {
             id: 'extensions',
             title: 'Extensions',
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11V7.5C21 6.4 20.1 5.5 19 5.5H15C15 4.1 13.9 3 12.5 3S10 4.1 10 5.5H6C4.9 5.5 4 6.4 4 7.5V11C5.4 11 6.5 12.1 6.5 13.5S5.4 16 4 16V19.5C4 20.6 4.9 21.5 6 21.5H9.5C9.5 22.9 10.6 24 12.5 24S15 22.9 15 21.5H19C20.1 21.5 21 20.6 21 19.5V16C19.6 16 18.5 14.9 18.5 13.5S19.6 11 21 11Z"/></svg>',
-            onClick: () => chrome.tabs.create({ url: 'chrome://extensions/' })
+            onClick: () => chrome.tabs.create({ url: getInternalUrl('extensions') })
         },
         {
             id: 'policy',
             title: 'Policy Viewer',
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
-            onClick: () => chrome.tabs.create({ url: 'chrome://policy' })
+            onClick: () => chrome.tabs.create({ url: getInternalUrl('policy') })
         },
         {
             id: 'extensionSettings',
